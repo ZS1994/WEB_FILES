@@ -3,6 +3,8 @@ package com.zs.test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -13,16 +15,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+
 public class Test extends HttpServlet{
 	
-	private final String tomcatName="apache-tomcat-6.0.37";
+	private final String tomcatName="apache-tomcat-9.0.0.M17";
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		final String PATH_BEGIN=req.getRealPath("/");
 		req.setCharacterEncoding("utf-8");
-		String path=req.getParameter("path")==null?PATH_BEGIN+"/files":req.getParameter("path");
+		String path=req.getParameter("path")==null?PATH_BEGIN+"files":URLDecoder.decode(req.getParameter("path"),"UTF-8");
 		File file=new File(path);
 		File[] tempList = file.listFiles();
 		List<String> ss=new ArrayList<String>();
@@ -34,13 +37,14 @@ public class Test extends HttpServlet{
 				pathtmp=path;
 			}
 			if(isTopDir(pathtmp)==false){
-				ss.add("<a href='test?path="+pathtmp+"' class='menu'>上一级目录</a>");
+				ss.add("<a href='test?path="+URLEncoder.encode(pathtmp,"UTF-8")+"' class='menu'>上一级目录</a>");
 			}
 			ss.add("<hr><table border='1' class='table1'>");
 			ss.add("<tr>");
 			ss.add("<th>名称</th>");
 			ss.add("<th width='30%'>最后修改时间</th>");
 			ss.add("<th width='20%'>大小</th>");
+			ss.add("<th width='20%'>操作</th>");
 			ss.add("</tr>");
 			for (int i = 0; i < tempList.length; i++) {
 				if (tempList[i].isFile()) {
@@ -56,20 +60,21 @@ public class Test extends HttpServlet{
 					cal.setTimeInMillis(time);     
 					String datetime=cal.getTime().toLocaleString();
 					ss.add("<tr>");
-					ss.add("<td><a href='"+str+"' download='"+tempList[i].getName()+"' class='filetype'>"+tempList[i].getName()+"</a></td>");
+					ss.add("<td><a href='"+str+"' class='filetype'>"+tempList[i].getName()+"</a></td>");
 					ss.add("<td class='td_center'><span class='lastTime'>"+datetime+"</span></td>");
 					ss.add("<td class='td_center'><span class='size'>"+StringSize+"</span></td>");
+					ss.add("<td><a href='"+str+"' download='"+tempList[i].getName()+"' class='filetype'>下载</a></td>");
 					ss.add("</tr>");
-				}
-				if (tempList[i].isDirectory()) {
+				}else if (tempList[i].isDirectory()) {
 					//获取最后修改时间
 					Calendar cal = Calendar.getInstance();   
 					long time = tempList[i].lastModified();   
 					cal.setTimeInMillis(time);     
 					String datetime=cal.getTime().toLocaleString();
 					ss.add("<tr>");
-					ss.add("<td><a href='test?path="+tempList[i].toString()+"' class='dirtype'>"+tempList[i].getName()+"</a></td>");
+					ss.add("<td><a href='test?path="+URLEncoder.encode(tempList[i].toString(),"UTF-8")+"' class='dirtype' >"+tempList[i].getName()+"</a></td>");
 					ss.add("<td class='td_center'><span class='lastTime'>"+datetime+"</span></td>");
+					ss.add("<td></td>");
 					ss.add("<td></td>");
 					ss.add("</tr>");
 				}
@@ -162,5 +167,7 @@ public class Test extends HttpServlet{
 	                + String.valueOf((size % 100)) + "GB";  
 	    }  
 	}
+	
+	
 }
 
